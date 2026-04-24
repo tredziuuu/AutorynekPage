@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zumikk's AutoRynek</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
+:root{
+  --g:#00ff41;--gd:#00c832;--gdk:#003b0e;--gg:#00ff4122;
+  --blk:#060a06;--s:#0a110a;--s2:#0e1a0e;
+  --bdr:#1a3a1a;--bdr2:#00ff4144;
+  --txt:#c8ffc8;--dim:#4a7a4a;
+  --red:#ff4141;--yel:#ffe041;--pur:#b041ff;
+  --mono:'Share Tech Mono',monospace;
+  --pixel:'Press Start 2P',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh}
+body{
+  font-family:var(--mono);
+  background:var(--blk);
+  color:var(--txt);
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 31px,#00ff4108 31px,#00ff4108 32px),
+    repeating-linear-gradient(90deg,transparent,transparent 31px,#00ff4108 31px,#00ff4108 32px);
+}
+.screen{display:none;min-height:100vh;align-items:center;justify-content:center;padding:1rem}
+.screen.active{display:flex}
+.box{
+  background:var(--s);border:2px solid var(--g);border-radius:2px;
+  padding:2.5rem 2rem;width:100%;max-width:420px;
+  box-shadow:0 0 60px #00ff4118,inset 0 0 30px #00ff410a;
+}
+.logo-area{text-align:center;margin-bottom:2rem}
+.logo-icon{font-size:40px;margin-bottom:10px;filter:drop-shadow(0 0 14px var(--g))}
+.logo-title{font-family:var(--pixel);font-size:13px;color:var(--g);letter-spacing:1px;text-shadow:0 0 20px var(--g),0 0 40px var(--g);line-height:2}
+.logo-sub{font-size:11px;color:var(--dim);letter-spacing:3px;margin-top:6px}
+.role-title{font-family:var(--pixel);font-size:8px;color:var(--dim);text-align:center;margin-bottom:1.5rem;letter-spacing:2px}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.role-btn{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:1.5rem 1rem;border:2px solid var(--bdr);border-radius:2px;
+  background:var(--s2);color:var(--txt);
+  font-family:var(--pixel);font-size:8px;cursor:pointer;
+  transition:all .15s;line-height:1.8;text-align:center;
+}
+.role-btn:hover{border-color:var(--g);background:var(--gdk);color:var(--g);box-shadow:0 0 24px var(--gg)}
+.role-btn .ricon{font-size:30px}
+.role-btn.rbadmin:hover{border-color:var(--pur);background:#1a0a2a;color:var(--pur);box-shadow:0 0 24px #b041ff22}
+.back-btn{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:12px;cursor:pointer;margin-bottom:1.2rem;display:flex;align-items:center;gap:6px}
+.back-btn:hover{color:var(--g)}
+.role-badge{display:inline-block;font-family:var(--pixel);font-size:8px;padding:4px 10px;border-radius:2px;margin-bottom:1.5rem}
+.rb-g{background:var(--gdk);color:var(--g);border:1px solid var(--g)}
+.rb-p{background:#1a0a2a;color:var(--pur);border:1px solid var(--pur)}
+.fl{font-size:11px;color:var(--dim);display:block;margin-bottom:5px;margin-top:14px;letter-spacing:1px}
+.fi{width:100%;height:40px;border-radius:2px;border:1px solid var(--bdr);background:var(--blk);color:var(--txt);font-size:13px;padding:0 14px;outline:none;font-family:var(--mono);transition:border-color .15s}
+.fi:focus{border-color:var(--g);box-shadow:0 0 12px var(--gg)}
+.ferr{color:var(--red);font-size:12px;margin-top:10px;min-height:18px;font-family:var(--mono)}
+.sbtn{width:100%;height:42px;border-radius:2px;border:2px solid var(--g);background:var(--gdk);color:var(--g);font-family:var(--pixel);font-size:9px;cursor:pointer;margin-top:1.5rem;letter-spacing:1px;transition:all .15s}
+.sbtn:hover{background:var(--g);color:var(--blk);box-shadow:0 0 20px var(--gg)}
+.sbtn.sp{border-color:var(--pur);background:#1a0a2a;color:var(--pur)}
+.sbtn.sp:hover{background:var(--pur);color:#fff;box-shadow:0 0 20px #b041ff33}
+
+/* APP SHELLS */
+#screen-client.active,#screen-admin.active,#screen-superadmin.active{display:block;min-height:100vh;padding:0}
+.topbar{background:var(--s);border-bottom:2px solid var(--bdr2);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;position:sticky;top:0;z-index:10}
+.tb-logo{font-family:var(--pixel);font-size:9px;color:var(--g);text-shadow:0 0 10px var(--g)}
+.tb-user{font-size:12px;color:var(--g);font-family:var(--mono)}
+.tb-logout{height:30px;padding:0 14px;border-radius:2px;border:1px solid var(--bdr);background:transparent;color:var(--dim);font-size:11px;font-family:var(--mono);cursor:pointer}
+.tb-logout:hover{color:var(--red);border-color:var(--red)}
+.main{padding:1.5rem;max-width:860px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.2rem}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.2rem}
+.stat{background:var(--s);border:1px solid var(--bdr);border-radius:2px;padding:12px}
+.stat-label{font-size:10px;color:var(--dim);margin-bottom:4px;letter-spacing:1px}
+.stat-val{font-size:22px;font-weight:600;color:var(--g);font-family:var(--pixel)}
+.card{background:var(--s);border:1px solid var(--bdr);border-radius:2px;padding:1.2rem;margin-bottom:1rem}
+.card-title{font-family:var(--pixel);font-size:9px;color:var(--g);margin-bottom:1rem;letter-spacing:1px;border-bottom:1px solid var(--bdr);padding-bottom:10px}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:11px;color:var(--dim);letter-spacing:1px}
+.fg input,.fg select{height:36px;border-radius:2px;border:1px solid var(--bdr);background:var(--blk);color:var(--txt);font-size:12px;padding:0 10px;outline:none;font-family:var(--mono)}
+.fg input:focus,.fg select:focus{border-color:var(--g)}
+.btn-p{height:36px;padding:0 16px;border-radius:2px;border:1px solid var(--g);background:var(--gdk);color:var(--g);font-size:11px;font-family:var(--mono);cursor:pointer}
+.btn-p:hover{background:var(--g);color:var(--blk)}
+.btn-pp{height:36px;padding:0 16px;border-radius:2px;border:1px solid var(--pur);background:#1a0a2a;color:var(--pur);font-size:11px;font-family:var(--mono);cursor:pointer}
+.btn-pp:hover{background:var(--pur);color:#fff}
+.btn-sm{height:28px;padding:0 10px;border-radius:2px;border:1px solid var(--bdr);background:transparent;color:var(--txt);font-size:11px;font-family:var(--mono);cursor:pointer}
+.btn-sm:hover{background:var(--s2);border-color:var(--g)}
+.btn-danger{color:var(--red);border-color:#3a1010}
+.btn-danger:hover{background:#1a0808;border-color:var(--red)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:10px;color:var(--dim);font-weight:500;text-align:left;padding:7px 10px;border-bottom:1px solid var(--bdr);letter-spacing:1px}
+.tbl td{font-size:12px;padding:9px 10px;border-bottom:1px solid #0e1a0e;vertical-align:middle;font-family:var(--mono)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#0a150a}
+.badge{font-size:10px;padding:2px 8px;border-radius:2px;font-family:var(--mono)}
+.b-active{background:#0a2a0a;color:var(--g);border:1px solid #1a4a1a}
+.b-expired{background:#2a0a0a;color:var(--red);border:1px solid #4a1a1a}
+.b-used{background:#1a1a1a;color:var(--dim)}
+.b-soon{background:#2a2000;color:var(--yel);border:1px solid #4a3a00}
+.b-admin{background:#1a0a2a;color:var(--pur);border:1px solid #3a1a4a}
+.mono{font-family:var(--mono);color:var(--g)}
+.search{width:100%;height:34px;border-radius:2px;border:1px solid var(--bdr);background:var(--blk);color:var(--txt);font-size:12px;padding:0 12px;outline:none;margin-bottom:10px;font-family:var(--mono)}
+.search:focus{border-color:var(--g)}
+.empty{text-align:center;padding:2rem;color:var(--dim);font-size:12px}
+.key-list{display:flex;flex-direction:column;gap:6px}
+.key-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--bdr);border-radius:2px;background:var(--blk);flex-wrap:wrap}
+.key-row:hover{border-color:var(--bdr2)}
+.key-row.expired-row{border-color:#3a1010;opacity:.65}
+.key-text{flex:1;font-family:var(--mono);font-size:12px;color:var(--g);min-width:180px}
+.ex-ok{font-size:11px;color:var(--g)}
+.ex-soon{font-size:11px;color:var(--yel)}
+.ex-exp{font-size:11px;color:var(--red)}
+.ex-none{font-size:11px;color:var(--dim)}
+.gen-preview{flex:1;min-width:180px;height:36px;border-radius:2px;border:1px solid var(--bdr2);background:var(--blk);color:var(--g);font-family:var(--mono);font-size:12px;padding:0 12px;outline:none;letter-spacing:1px}
+.sa-layout{display:flex;min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:210px;background:var(--s);border-right:2px solid var(--bdr2);padding:1.2rem 0.8rem;display:flex;flex-direction:column;gap:4px}
+.sb-logo{font-family:var(--pixel);font-size:8px;color:var(--g);text-shadow:0 0 10px var(--g);padding-bottom:1rem;margin-bottom:.5rem;border-bottom:1px solid var(--bdr);letter-spacing:1px;line-height:2}
+.sb-sub{font-size:10px;color:var(--pur);font-family:var(--mono);display:block;margin-top:2px}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:2px;border:none;background:transparent;color:var(--dim);font-size:12px;font-family:var(--mono);cursor:pointer;width:100%;text-align:left;border-left:2px solid transparent}
+.nav-btn:hover{background:var(--s2);color:var(--txt)}
+.nav-btn.active{background:var(--gdk);color:var(--g);border-left-color:var(--g)}
+.logout-nav:hover{color:var(--red)!important}
+.sb-user{font-size:10px;color:var(--dim);padding:8px 10px;border-top:1px solid var(--bdr)}
+.sa-main{margin-left:210px;padding:1.5rem;max-width:900px}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-family:var(--pixel);font-size:11px;color:var(--g);margin-bottom:1.2rem;text-shadow:0 0 10px var(--g)}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--gdk);color:var(--g);border:1px solid var(--g);border-radius:2px;padding:10px 18px;font-size:12px;font-family:var(--mono);opacity:0;transition:opacity .2s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ══ SCREEN: ROLE PICKER ══ -->
+<div class="screen active" id="screen-role">
+  <div class="box">
+    <div class="logo-area">
+      <div class="logo-icon">⛏️</div>
+      <div class="logo-title">AutoRynek</div>
+      <div class="logo-sub">▶ ZUMIKK'S SERVER ◀</div>
+    </div>
+    <div class="role-title">── KIM JESTEŚ? ──</div>
+    <div class="role-grid">
+      <button class="role-btn" onclick="pickRole('client')">
+        <span class="ricon">🧑‍💻</span>
+        KLIENT<br/>PANEL
+      </button>
+      <button class="role-btn rbadmin" onclick="pickRole('admin')">
+        <span class="ricon">👑</span>
+        ADMIN<br/>PANEL
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: CLIENT LOGIN ══ -->
+<div class="screen" id="screen-login-client">
+  <div class="box">
+    <button class="back-btn" onclick="goBack()">◀ WRÓĆ</button>
+    <div class="logo-area">
+      <div class="logo-icon">🧑‍💻</div>
+      <div class="logo-title" style="font-size:11px">PANEL KLIENTA</div>
+    </div>
+    <span class="role-badge rb-g">⚡ KLIENT</span>
+    <label class="fl">LOGIN</label>
+    <input class="fi" type="text" id="cl-name" placeholder="Twój login..." onkeydown="if(event.key==='Enter')clientLogin()"/>
+    <label class="fl">HASŁO</label>
+    <input class="fi" type="password" id="cl-pass" placeholder="Hasło..." onkeydown="if(event.key==='Enter')clientLogin()"/>
+    <div class="ferr" id="cl-err"></div>
+    <button class="sbtn" onclick="clientLogin()">▶ ZALOGUJ SIĘ</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN: ADMIN LOGIN ══ -->
+<div class="screen" id="screen-login-admin">
+  <div class="box">
+    <button class="back-btn" onclick="goBack()">◀ WRÓĆ</button>
+    <div class="logo-area">
+      <div class="logo-icon">👑</div>
+      <div class="logo-title" style="font-size:11px">PANEL ADMINA</div>
+    </div>
+    <span class="role-badge rb-p">⚡ ADMIN</span>
+    <label class="fl">LOGIN</label>
+    <input class="fi" type="text" id="adm-name" placeholder="Login admina..." onkeydown="if(event.key==='Enter')adminLogin()"/>
+    <label class="fl">HASŁO</label>
+    <input class="fi" type="password" id="adm-pass" placeholder="Hasło..." onkeydown="if(event.key==='Enter')adminLogin()"/>
+    <div class="ferr" id="adm-err"></div>
+    <button class="sbtn sp" onclick="adminLogin()">▶ ZALOGUJ SIĘ</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN: CLIENT PANEL ══ -->
+<div class="screen" id="screen-client">
+  <div style="width:100%">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="tb-logo">⛏️ AutoRynek</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="tb-user" id="cl-topbar-user"></span>
+        <button class="tb-logout" onclick="doLogout()">WYLOGUJ</button>
+      </div>
+    </div>
+    <div class="main">
+      <div class="stats">
+        <div class="stat"><div class="stat-label">WSZYSTKICH</div><div class="stat-val" id="cl-st-total">0</div></div>
+        <div class="stat"><div class="stat-label">AKTYWNYCH</div><div class="stat-val" id="cl-st-active">0</div></div>
+        <div class="stat"><div class="stat-label">WYGASŁYCH</div><div class="stat-val" id="cl-st-exp">0</div></div>
+        <div class="stat"><div class="stat-label">UŻYTYCH</div><div class="stat-val" id="cl-st-used">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ GENERUJ NOWY KLUCZ</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="form-row">
+            <input class="gen-preview" id="cl-key-preview" readonly placeholder="Kliknij GENERUJ..."/>
+            <button class="btn-p" onclick="clGenerateKey()">+ GENERUJ</button>
+            <button class="btn-sm" id="cl-copy-btn" onclick="clCopyLast()" style="display:none">📋 KOPIUJ</button>
+          </div>
+          <div class="form-row">
+            <div class="fg">
+              <label>NICK GRACZA (MC)</label>
+              <input type="text" id="cl-player-nick" placeholder="np. Steve123" style="width:200px;border-color:var(--g);color:var(--g)"/>
+            </div>
+            <div class="fg">
+              <label>WAŻNOŚĆ</label>
+              <select id="cl-duration" onchange="clToggleCustomDate()">
+                <option value="1">1 dzień</option>
+                <option value="7">7 dni</option>
+                <option value="14">14 dni</option>
+                <option value="30" selected>30 dni</option>
+                <option value="90">90 dni</option>
+                <option value="180">6 miesięcy</option>
+                <option value="365">1 rok</option>
+                <option value="0">Bezterminowo</option>
+                <option value="custom">Własna data...</option>
+              </select>
+            </div>
+            <div class="fg" id="cl-custom-date-wrap" style="display:none">
+              <label>DATA</label>
+              <input type="date" id="cl-custom-date"/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔑 TWOJE KLUCZE</div>
+        <input class="search" id="cl-key-search" placeholder="Szukaj klucza lub gracza..." oninput="clRenderKeys()"/>
+        <div class="key-list" id="cl-key-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: NORMAL ADMIN PANEL ══ -->
+<div class="screen" id="screen-admin">
+  <div style="width:100%">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="tb-logo">⛏️ AutoRynek</span>
+        <span style="font-size:10px;color:var(--pur);font-family:var(--mono)">ADMIN</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="tb-user" id="adm-topbar-user" style="color:var(--pur)"></span>
+        <button class="tb-logout" onclick="doLogout()">WYLOGUJ</button>
+      </div>
+    </div>
+    <div class="main">
+      <div class="stats3">
+        <div class="stat"><div class="stat-label">WSZYSTKICH KLUCZY</div><div class="stat-val" id="adm-st-total">0</div></div>
+        <div class="stat"><div class="stat-label">AKTYWNYCH</div><div class="stat-val" id="adm-st-active">0</div></div>
+        <div class="stat"><div class="stat-label">WYGASŁYCH</div><div class="stat-val" id="adm-st-exp">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--pur)">⚡ UTWÓRZ KONTO KLIENTA + KLUCZ</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="form-row">
+            <input class="gen-preview" id="adm-key-preview" readonly placeholder="Kliknij GENERUJ..." style="border-color:var(--pur);color:var(--pur)"/>
+            <button class="btn-pp" onclick="admGenerateKey()">+ GENERUJ</button>
+            <button class="btn-sm" id="adm-copy-btn" onclick="admCopyLast()" style="display:none">📋 KOPIUJ</button>
+          </div>
+          <div class="form-row">
+            <div class="fg">
+              <label>LOGIN KLIENTA</label>
+              <input type="text" id="adm-client-login" placeholder="np. jankowalski" style="width:165px"/>
+            </div>
+            <div class="fg">
+              <label>HASŁO KLIENTA</label>
+              <input type="text" id="adm-client-pass" placeholder="np. haslo123" style="width:150px"/>
+            </div>
+            <div class="fg">
+              <label>NICK MC GRACZA</label>
+              <input type="text" id="adm-player-nick" placeholder="np. Steve123" style="width:155px"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="fg">
+              <label>WAŻNOŚĆ KLUCZA</label>
+              <select id="adm-duration" onchange="admToggleCustomDate()">
+                <option value="1">1 dzień</option>
+                <option value="7">7 dni</option>
+                <option value="14">14 dni</option>
+                <option value="30" selected>30 dni</option>
+                <option value="90">90 dni</option>
+                <option value="180">6 miesięcy</option>
+                <option value="365">1 rok</option>
+                <option value="0">Bezterminowo</option>
+                <option value="custom">Własna data...</option>
+              </select>
+            </div>
+            <div class="fg" id="adm-custom-date-wrap" style="display:none">
+              <label>DATA</label>
+              <input type="date" id="adm-custom-date"/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔑 KLUCZE KLIENTÓW</div>
+        <input class="search" id="adm-key-search" placeholder="Szukaj klucza, loginu lub gracza..." oninput="admRenderKeys()"/>
+        <div class="key-list" id="adm-key-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: SUPERADMIN PANEL ══ -->
+<div class="screen" id="screen-superadmin">
+  <div class="sa-layout" style="width:100%">
+    <div class="sidebar">
+      <div class="sb-logo">⛏️ AutoRynek<span class="sb-sub">⚡ SUPER ADMIN</span></div>
+      <button class="nav-btn active" onclick="saPage('admins')" id="sa-nav-admins">👥 Panele adminów</button>
+      <button class="nav-btn" onclick="saPage('keys')" id="sa-nav-keys">🔑 Wszystkie klucze</button>
+      <div class="sb-user" id="sa-sidebar-user"></div>
+      <button class="nav-btn logout-nav" style="margin-top:auto" onclick="doLogout()">🚪 Wyloguj</button>
+    </div>
+    <div class="sa-main">
+      <div class="page active" id="sa-page-admins">
+        <div class="page-title">👥 PANELE ADMINÓW</div>
+        <div class="stats3">
+          <div class="stat"><div class="stat-label">ADMINÓW</div><div class="stat-val" id="sa-st-admins">0</div></div>
+          <div class="stat"><div class="stat-label">WSZYSTKICH KLUCZY</div><div class="stat-val" id="sa-st-allkeys">0</div></div>
+          <div class="stat"><div class="stat-label">AKTYWNYCH KLUCZY</div><div class="stat-val" id="sa-st-activekeys">0</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">+ UTWÓRZ NOWY PANEL ADMINA</div>
+          <div class="form-row">
+            <div class="fg"><label>NICK / LOGIN</label><input type="text" id="sa-new-name" placeholder="np. Kolega1" style="width:170px"/></div>
+            <div class="fg"><label>HASŁO</label><input type="text" id="sa-new-pass" placeholder="np. haslo123" style="width:150px"/></div>
+            <button class="btn-p" onclick="saCreateAdmin()" style="margin-top:auto">+ UTWÓRZ</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 LISTA ADMINÓW</div>
+          <table class="tbl">
+            <thead><tr><th>NICK</th><th>HASŁO</th><th>KLUCZY</th><th>UTWORZONY</th><th>AKCJE</th></tr></thead>
+            <tbody id="sa-admins-table"><tr><td colspan="5" class="empty">Ładowanie...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="page" id="sa-page-keys">
+        <div class="page-title">🔑 WSZYSTKIE KLUCZE</div>
+        <input class="search" id="sa-keys-search" placeholder="Szukaj klucza, admina lub gracza..." oninput="saRenderAllKeys()"/>
+        <div class="card">
+          <table class="tbl">
+            <thead><tr><th>KLUCZ</th><th>ADMIN</th><th>GRACZ</th><th>WAŻNOŚĆ</th><th>STATUS</th><th>AKCJE</th></tr></thead>
+            <tbody id="sa-keys-table"><tr><td colspan="6" class="empty">Ładowanie...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, updateDoc, query, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBI4gwU4bAysvC5ERigsh-o8Vxiaws7-oU",
+  authDomain: "zumikk-rynek.firebaseapp.com",
+  projectId: "zumikk-rynek",
+  storageBucket: "zumikk-rynek.firebasestorage.app",
+  messagingSenderId: "569991962262",
+  appId: "1:569991962262:web:e370ef73df25d7a20b6cb7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ════ SUPERADMIN CREDENTIALS — ZMIEŃ TUTAJ ════
+const SA_LOGIN = 'tredziu';
+const SA_PASS  = 'Dawidek174!';
+// ═════════════════════════════════════════════
+
+const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function rnd(n){let s='';for(let i=0;i<n;i++)s+=CHARS[Math.floor(Math.random()*CHARS.length)];return s;}
+function today(){return new Date(new Date().toISOString().split('T')[0]);}
+function isExp(e){if(!e)return false;return new Date(e)<today();}
+function dLeft(e){if(!e)return null;return Math.ceil((new Date(e)-today())/86400000);}
+function exHTML(e){
+  if(!e)return '<span class="ex-none">Bezterminowo</span>';
+  const d=dLeft(e),ds=new Date(e).toLocaleDateString('pl-PL');
+  if(d<0)return `<span class="ex-exp">Wygasł ${ds}</span>`;
+  if(d===0)return '<span class="ex-soon">Wygasa dziś!</span>';
+  if(d<=3)return `<span class="ex-soon">${d}d (${ds})</span>`;
+  return `<span class="ex-ok">${d}d (${ds})</span>`;
+}
+function bHTML(k){
+  if(k.used)return '<span class="badge b-used">UŻYTY</span>';
+  if(isExp(k.expiry))return '<span class="badge b-expired">WYGASŁY</span>';
+  if(k.expiry&&dLeft(k.expiry)<=3)return '<span class="badge b-soon">WYGASA</span>';
+  return '<span class="badge b-active">AKTYWNY</span>';
+}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+window.pickRole=function(r){showScreen(r==='client'?'screen-login-client':'screen-login-admin');};
+window.goBack=function(){showScreen('screen-role');};
+
+// ─── CLIENT ───
+let curClient=null,clKeys=[],clLastKey='',unsubCl=null;
+
+window.clientLogin=async function(){
+  const name=document.getElementById('cl-name').value.trim();
+  const pass=document.getElementById('cl-pass').value;
+  document.getElementById('cl-err').textContent='';
+  if(!name||!pass){document.getElementById('cl-err').textContent='Wypełnij wszystkie pola!';return;}
+  const snap=await getDocs(query(collection(db,'admins'),where('name','==',name),where('pass','==',pass)));
+  if(snap.empty){document.getElementById('cl-err').textContent='Nieprawidłowy login lub hasło!';return;}
+  curClient={id:snap.docs[0].id,...snap.docs[0].data()};
+  document.getElementById('cl-topbar-user').textContent='⚡ '+curClient.name;
+  const def=new Date();def.setDate(def.getDate()+30);
+  document.getElementById('cl-custom-date').value=def.toISOString().split('T')[0];
+  unsubCl=onSnapshot(query(collection(db,'keys'),where('adminId','==',curClient.id)),sn=>{
+    clKeys=sn.docs.map(d=>({id:d.id,...d.data()}));
+    clKeys.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    clRenderKeys();clStats();
+  });
+  showScreen('screen-client');
+};
+
+window.clToggleCustomDate=function(){
+  document.getElementById('cl-custom-date-wrap').style.display=
+    document.getElementById('cl-duration').value==='custom'?'':'none';
+};
+function clExpiry(){
+  const v=document.getElementById('cl-duration').value;
+  if(v==='0')return null;
+  if(v==='custom')return document.getElementById('cl-custom-date').value||null;
+  const d=new Date();d.setDate(d.getDate()+parseInt(v));return d.toISOString().split('T')[0];
+}
+window.clGenerateKey=async function(){
+  if(!curClient)return;
+  const pn=document.getElementById('cl-player-nick').value.trim();
+  if(!pn){document.getElementById('cl-player-nick').style.borderColor='var(--red)';toast('Wpisz nick MC!');return;}
+  document.getElementById('cl-player-nick').style.borderColor='var(--g)';
+  const k='ZUMIKK-'+rnd(4)+'-'+rnd(4)+'-'+rnd(4);
+  await setDoc(doc(db,'keys',k),{key:k,adminId:curClient.id,used:false,expiry:clExpiry(),created:new Date().toLocaleDateString('pl-PL'),createdAt:Date.now(),playerNick:pn.toLowerCase()});
+  document.getElementById('cl-player-nick').value='';
+  clLastKey=k;
+  document.getElementById('cl-key-preview').value=k;
+  document.getElementById('cl-copy-btn').style.display='';
+  toast('Klucz dla '+pn+' wygenerowany!');
+};
+window.clCopyLast=function(){navigator.clipboard.writeText(clLastKey).then(()=>toast('Skopiowano!')).catch(()=>toast('Błąd'));};
+window.clCopyKey=function(k){navigator.clipboard.writeText(k).then(()=>toast('Skopiowano: '+k)).catch(()=>toast('Błąd'));};
+window.clToggleUsed=async function(id,cur){await updateDoc(doc(db,'keys',id),{used:!cur});};
+window.clDeleteKey=async function(id,key){if(!confirm('Usunąć klucz '+key+'?'))return;await deleteDoc(doc(db,'keys',id));toast('Klucz usunięty!');};
+window.clRenderKeys=function(){
+  const s=(document.getElementById('cl-key-search')?.value||'').toUpperCase();
+  const el=document.getElementById('cl-key-list');
+  const f=clKeys.filter(k=>k.key&&(k.key.includes(s)||(k.playerNick||'').toUpperCase().includes(s)));
+  if(!f.length){el.innerHTML=`<div class="empty">${s?'Brak wyników.':'Brak kluczy. Wygeneruj pierwszy!'}</div>`;return;}
+  el.innerHTML=f.map(k=>`
+    <div class="key-row ${isExp(k.expiry)?'expired-row':''}">
+      <div class="key-text">${k.key}</div>
+      ${k.playerNick?`<span style="font-size:11px;color:var(--g)">👤 ${k.playerNick}</span>`:'<span style="font-size:11px;color:var(--dim)">—</span>'}
+      ${exHTML(k.expiry)} ${bHTML(k)}
+      <span style="font-size:10px;color:var(--dim)">${k.created||''}</span>
+      <button class="btn-sm" onclick="clCopyKey('${k.key}')">📋</button>
+      <button class="btn-sm" onclick="clToggleUsed('${k.id}',${k.used})">${k.used?'↺':'✓'}</button>
+      <button class="btn-sm btn-danger" onclick="clDeleteKey('${k.id}','${k.key}')">✕</button>
+    </div>`).join('');
+};
+function clStats(){
+  document.getElementById('cl-st-total').textContent=clKeys.length;
+  document.getElementById('cl-st-active').textContent=clKeys.filter(k=>!k.used&&!isExp(k.expiry)).length;
+  document.getElementById('cl-st-exp').textContent=clKeys.filter(k=>isExp(k.expiry)).length;
+  document.getElementById('cl-st-used').textContent=clKeys.filter(k=>k.used).length;
+}
+
+// ─── NORMAL ADMIN ───
+let curAdmin=null,admKeys=[],admLastKey='',unsubAdm=null;
+
+window.adminLogin=async function(){
+  const name=document.getElementById('adm-name').value.trim();
+  const pass=document.getElementById('adm-pass').value;
+  document.getElementById('adm-err').textContent='';
+  if(!name||!pass){document.getElementById('adm-err').textContent='Wypełnij wszystkie pola!';return;}
+  if(name===SA_LOGIN&&pass===SA_PASS){
+    document.getElementById('sa-sidebar-user').textContent='⚡ '+name;
+    loadSAData();showScreen('screen-superadmin');return;
+  }
+  const snap=await getDocs(query(collection(db,'admins'),where('name','==',name),where('pass','==',pass)));
+  if(snap.empty){document.getElementById('adm-err').textContent='Nieprawidłowy login lub hasło!';return;}
+  curAdmin={id:snap.docs[0].id,...snap.docs[0].data()};
+  document.getElementById('adm-topbar-user').textContent='👑 '+curAdmin.name;
+  const def=new Date();def.setDate(def.getDate()+30);
+  document.getElementById('adm-custom-date').value=def.toISOString().split('T')[0];
+  unsubAdm=onSnapshot(query(collection(db,'keys'),where('adminId','==',curAdmin.id)),sn=>{
+    admKeys=sn.docs.map(d=>({id:d.id,...d.data()}));
+    admKeys.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    admRenderKeys();admStats();
+  });
+  showScreen('screen-admin');
+};
+
+window.admToggleCustomDate=function(){
+  document.getElementById('adm-custom-date-wrap').style.display=
+    document.getElementById('adm-duration').value==='custom'?'':'none';
+};
+function admExpiry(){
+  const v=document.getElementById('adm-duration').value;
+  if(v==='0')return null;
+  if(v==='custom')return document.getElementById('adm-custom-date').value||null;
+  const d=new Date();d.setDate(d.getDate()+parseInt(v));return d.toISOString().split('T')[0];
+}
+window.admGenerateKey=async function(){
+  if(!curAdmin)return;
+  const pn=document.getElementById('adm-player-nick').value.trim();
+  const cLogin=document.getElementById('adm-client-login').value.trim();
+  const cPass=document.getElementById('adm-client-pass').value.trim();
+  if(!pn||!cLogin||!cPass){toast('Wypełnij: login klienta, hasło i nick MC!');return;}
+  const existing=await getDocs(query(collection(db,'admins'),where('name','==',cLogin)));
+  if(existing.empty){
+    await setDoc(doc(db,'admins',cLogin),{name:cLogin,pass:cPass,created:new Date().toLocaleDateString('pl-PL'),createdBy:curAdmin.id});
+  }
+  const k='ZUMIKK-'+rnd(4)+'-'+rnd(4)+'-'+rnd(4);
+  await setDoc(doc(db,'keys',k),{key:k,adminId:cLogin,used:false,expiry:admExpiry(),created:new Date().toLocaleDateString('pl-PL'),createdAt:Date.now(),playerNick:pn.toLowerCase(),createdByAdmin:curAdmin.id});
+  document.getElementById('adm-player-nick').value='';
+  admLastKey=k;
+  document.getElementById('adm-key-preview').value=k;
+  document.getElementById('adm-copy-btn').style.display='';
+  toast(`✅ Klucz dla ${pn} | Klient: ${cLogin}`);
+};
+window.admCopyLast=function(){navigator.clipboard.writeText(admLastKey).then(()=>toast('Skopiowano!')).catch(()=>toast('Błąd'));};
+window.admCopyKey=function(k){navigator.clipboard.writeText(k).then(()=>toast('Skopiowano: '+k)).catch(()=>toast('Błąd'));};
+window.admToggleUsed=async function(id,cur){await updateDoc(doc(db,'keys',id),{used:!cur});};
+window.admDeleteKey=async function(id,key){if(!confirm('Usunąć klucz '+key+'?'))return;await deleteDoc(doc(db,'keys',id));toast('Klucz usunięty!');};
+window.admRenderKeys=function(){
+  const s=(document.getElementById('adm-key-search')?.value||'').toUpperCase();
+  const el=document.getElementById('adm-key-list');
+  const f=admKeys.filter(k=>k.key&&(k.key.includes(s)||(k.playerNick||'').toUpperCase().includes(s)||(k.adminId||'').toUpperCase().includes(s)));
+  if(!f.length){el.innerHTML=`<div class="empty">${s?'Brak wyników.':'Brak kluczy. Utwórz pierwszy!'}</div>`;return;}
+  el.innerHTML=f.map(k=>`
+    <div class="key-row ${isExp(k.expiry)?'expired-row':''}">
+      <div class="key-text">${k.key}</div>
+      <span style="font-size:11px;color:var(--pur)">👤 ${k.adminId}</span>
+      ${k.playerNick?`<span style="font-size:11px;color:var(--g)">🎮 ${k.playerNick}</span>`:''}
+      ${exHTML(k.expiry)} ${bHTML(k)}
+      <span style="font-size:10px;color:var(--dim)">${k.created||''}</span>
+      <button class="btn-sm" onclick="admCopyKey('${k.key}')">📋</button>
+      <button class="btn-sm" onclick="admToggleUsed('${k.id}',${k.used})">${k.used?'↺':'✓'}</button>
+      <button class="btn-sm btn-danger" onclick="admDeleteKey('${k.id}','${k.key}')">✕</button>
+    </div>`).join('');
+};
+function admStats(){
+  document.getElementById('adm-st-total').textContent=admKeys.length;
+  document.getElementById('adm-st-active').textContent=admKeys.filter(k=>!k.used&&!isExp(k.expiry)).length;
+  document.getElementById('adm-st-exp').textContent=admKeys.filter(k=>isExp(k.expiry)).length;
+}
+
+// ─── SUPERADMIN ───
+let saAdmins=[],saAllKeys=[],unsubSA1=null,unsubSA2=null;
+
+function loadSAData(){
+  if(unsubSA1)unsubSA1();if(unsubSA2)unsubSA2();
+  unsubSA1=onSnapshot(collection(db,'admins'),sn=>{saAdmins=sn.docs.map(d=>({id:d.id,...d.data()}));saRenderAdmins();saStats();});
+  unsubSA2=onSnapshot(collection(db,'keys'),sn=>{saAllKeys=sn.docs.map(d=>({id:d.id,...d.data()}));saRenderAllKeys();saStats();});
+}
+window.saPage=function(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sa-page-'+name).classList.add('active');
+  document.getElementById('sa-nav-'+name).classList.add('active');
+};
+window.saCreateAdmin=async function(){
+  const name=document.getElementById('sa-new-name').value.trim();
+  const pass=document.getElementById('sa-new-pass').value.trim();
+  if(!name||!pass){toast('Wypełnij nazwę i hasło!');return;}
+  if(saAdmins.find(a=>a.name===name)){toast('Admin o tej nazwie już istnieje!');return;}
+  await setDoc(doc(db,'admins',name),{name,pass,created:new Date().toLocaleDateString('pl-PL')});
+  document.getElementById('sa-new-name').value='';
+  document.getElementById('sa-new-pass').value='';
+  toast('Panel dla '+name+' utworzony!');
+};
+window.saDeleteAdmin=async function(id){
+  if(!confirm('Usunąć admina '+id+' i wszystkie jego klucze?'))return;
+  await deleteDoc(doc(db,'admins',id));
+  const ks=await getDocs(query(collection(db,'keys'),where('adminId','==',id)));
+  for(const d of ks.docs)await deleteDoc(d.ref);
+  toast('Admin usunięty!');
+};
+function saRenderAdmins(){
+  const tb=document.getElementById('sa-admins-table');
+  if(!saAdmins.length){tb.innerHTML='<tr><td colspan="5" class="empty">Brak adminów. Utwórz pierwszy!</td></tr>';return;}
+  tb.innerHTML=saAdmins.map(a=>{
+    const kc=saAllKeys.filter(k=>k.adminId===a.id).length;
+    return `<tr>
+      <td><span class="badge b-admin">${a.name}</span></td>
+      <td><span class="mono" style="font-size:11px">${a.pass}</span></td>
+      <td style="color:var(--g)">${kc}</td>
+      <td style="color:var(--dim);font-size:11px">${a.created||''}</td>
+      <td><button class="btn-sm btn-danger" onclick="saDeleteAdmin('${a.id}')">USUŃ</button></td>
+    </tr>`;}).join('');
+}
+window.saRenderAllKeys=function(){
+  const s=(document.getElementById('sa-keys-search')?.value||'').toUpperCase();
+  const tb=document.getElementById('sa-keys-table');
+  const f=saAllKeys.filter(k=>k.key&&(k.key.includes(s)||(k.adminId||'').toUpperCase().includes(s)||(k.playerNick||'').toUpperCase().includes(s)));
+  if(!f.length){tb.innerHTML='<tr><td colspan="6" class="empty">Brak kluczy.</td></tr>';return;}
+  tb.innerHTML=f.map(k=>`<tr>
+    <td class="mono" style="font-size:11px">${k.key}</td>
+    <td><span class="badge b-admin">${k.adminId||'?'}</span></td>
+    <td>${k.playerNick?`<span style="color:var(--g);font-size:11px">${k.playerNick}</span>`:'<span style="color:var(--dim)">—</span>'}</td>
+    <td>${exHTML(k.expiry)}</td>
+    <td>${bHTML(k)}</td>
+    <td><button class="btn-sm btn-danger" onclick="saDeleteKey('${k.id}')">USUŃ</button></td>
+  </tr>`).join('');
+};
+window.saDeleteKey=async function(id){if(!confirm('Usunąć ten klucz?'))return;await deleteDoc(doc(db,'keys',id));toast('Klucz usunięty!');};
+function saStats(){
+  document.getElementById('sa-st-admins').textContent=saAdmins.length;
+  document.getElementById('sa-st-allkeys').textContent=saAllKeys.length;
+  document.getElementById('sa-st-activekeys').textContent=saAllKeys.filter(k=>!k.used&&!isExp(k.expiry)).length;
+}
+
+// ─── LOGOUT ───
+window.doLogout=function(){
+  [unsubCl,unsubAdm,unsubSA1,unsubSA2].forEach(u=>{if(u)u();});
+  unsubCl=unsubAdm=unsubSA1=unsubSA2=null;
+  curClient=curAdmin=null;clKeys=[];admKeys=[];saAdmins=[];saAllKeys=[];
+  ['cl-name','cl-pass','adm-name','adm-pass'].forEach(id=>document.getElementById(id).value='');
+  showScreen('screen-role');
+};
+</script>
+</body>
+</html>
